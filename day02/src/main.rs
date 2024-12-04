@@ -1,6 +1,3 @@
-const EXAMPLE: &str = include_str!("example.txt");
-const INPUT: &str = include_str!("input.txt");
-
 fn is_valid(report: &Vec<i32>) -> bool {
     report.windows(2).all(|w| {
         1 <= (w[1] - w[0]) && 3 >= (w[1] - w[0])
@@ -40,9 +37,24 @@ fn part_one(input: &str) -> i32 {
     reports.iter().filter(|report: &&Vec<i32>| is_valid(*report)).count() as i32
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    const EXAMPLE: &str = include_str!("example.txt");
+    #[test]
+    fn example_part_one() {
+        assert_eq!(part_one(EXAMPLE), 2);
+    }
+
+    #[test]
+    fn example_part_two() {
+        assert_eq!(part_two(EXAMPLE), 4);
+    }
+}
+
 fn main() {
-    println!("Part One example: {}", part_one(EXAMPLE));
-    println!("Part One input: {}", part_one(INPUT));
-    println!("Part Two example: {}", part_two(EXAMPLE));
-    println!("Part Two input: {}", part_two(INPUT));
+    const INPUT: &str = include_str!("input.txt");
+    println!("{} part one: {}", env!("CARGO_PKG_NAME"), part_one(INPUT));
+    println!("{} part two: {}", env!("CARGO_PKG_NAME"), part_two(INPUT));
 }

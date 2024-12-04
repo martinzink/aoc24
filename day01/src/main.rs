@@ -1,8 +1,5 @@
 use std::collections::HashMap;
 
-const EXAMPLE: &str = include_str!("example.txt");
-const INPUT: &str = include_str!("input.txt");
-
 fn parse_into_vecs(input: &str) -> (Vec<u32>, Vec<u32>) {
     input
         .lines()
@@ -30,9 +27,22 @@ fn part_one(input: &str) -> u32 {
     first.iter().zip(second.iter()).fold(0, |acc, (a, b)| acc + a.abs_diff(*b))
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    const EXAMPLE: &str = include_str!("example.txt");
+    #[test]
+    fn example_part_one() {
+        assert_eq!(part_one(EXAMPLE), 11);
+    }
+
+    #[test]
+    fn example_part_two() {
+        assert_eq!(part_two(EXAMPLE), 31);
+    }
+}
+
 fn main() {
-    println!("Part One example: {}", part_one(EXAMPLE));
-    println!("Part One input: {}", part_one(INPUT));
-    println!("Part Two example: {}", part_two(EXAMPLE));
-    println!("Part Two input: {}", part_two(INPUT));
+    const INPUT: &str = include_str!("input.txt");
+    common_main(INPUT)
 }
