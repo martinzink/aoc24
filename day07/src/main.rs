@@ -6,6 +6,35 @@ struct Operation {
 }
 
 impl Operation {
+    fn munch(&self, curr_sum: i128, i: usize, operator: char) -> Option<i128> {
+        let mut sum = curr_sum;
+        if i >= self.operands.len() {
+            return None;
+        }
+        let rhs = self.operands[i];
+        match operator {
+            '+' => sum += rhs,
+            '*' => sum *= rhs,
+            '|' => {
+                let digits_of_rhs = rhs.to_string().len();
+                sum *= 10_i128.pow(digits_of_rhs as u32);
+                sum += rhs;
+            },
+            _ => unreachable!(),
+        };
+        if sum > self.result {
+            None
+        } else if sum == self.result && i == self.operands.len()-1 {
+           Some(sum)
+        } else {
+            self.munch(sum, i+1, '+').or(self.munch(sum, i+1, '*')).or(self.munch(sum, i+1, '|'))
+        }
+    }
+    fn is_valid_recursive(&self) -> bool {
+        let sum = *self.operands.first().unwrap();
+        self.munch(sum, 1, '+').or(self.munch(sum, 1, '*')).or(self.munch(sum, 1, '|')) == Some(self.result)
+
+    }
     fn is_valid(&self, supported_operations: Vec<char>) -> bool {
         assert!(self.operands.len() > 1);
         let num_of_operators = self.operands.len() - 1;
@@ -24,6 +53,9 @@ impl Operation {
                         sum += rhs;
                     },
                     _ => unreachable!(),
+                }
+                if sum > self.result {
+                    break;
                 }
             }
             if sum == self.result {
@@ -59,7 +91,7 @@ fn part_two(input: &str) -> i128 {
     let inputs = parse(input);
     let mut sum = 0;
     for operation in inputs {
-        if operation.is_valid(['+', '*', '|'].to_vec()) {
+        if operation.is_valid_recursive() {
             sum += operation.result;
         }
     }
