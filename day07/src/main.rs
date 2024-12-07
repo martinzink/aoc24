@@ -1,4 +1,3 @@
-use itertools::Itertools;
 
 struct Operation {
     result: i128,
@@ -6,7 +5,7 @@ struct Operation {
 }
 
 impl Operation {
-    fn munch(&self, curr_sum: i128, i: usize, operator: char) -> Option<i128> {
+    fn munch(&self, curr_sum: i128, i: usize, operator: char, concat_enabled: bool) -> Option<i128> {
         let mut sum = curr_sum;
         if i >= self.operands.len() {
             return None;
@@ -26,44 +25,22 @@ impl Operation {
         } else if sum == self.result && i == self.operands.len()-1 {
            Some(sum)
         } else {
-            self.munch(sum, i+1, '+').or(self.munch(sum, i+1, '*')).or(self.munch(sum, i+1, '|'))
+            if concat_enabled {
+                self.munch(sum, i + 1, '+', concat_enabled).or(self.munch(sum, i + 1, '*', concat_enabled)).or(self.munch(sum, i + 1, '|', concat_enabled))
+            } else {
+                self.munch(sum, i + 1, '+', concat_enabled).or(self.munch(sum, i + 1, '*', concat_enabled))
+            }
         }
     }
-    fn is_valid_recursive(&self) -> bool {
+    fn is_valid_recursive(&self, concat_enabled: bool) -> bool {
         let sum = *self.operands.first().unwrap();
-        self.munch(sum, 1, '+').or(self.munch(sum, 1, '*')).or(self.munch(sum, 1, '|')) == Some(self.result)
-
-    }
-    fn is_valid(&self, supported_operations: Vec<char>) -> bool {
-        assert!(self.operands.len() > 1);
-        let num_of_operators = self.operands.len() - 1;
-        let operator_permutations = itertools::repeat_n(supported_operations.iter(), num_of_operators).multi_cartesian_product();
-
-        for operator_perm in operator_permutations {
-            let mut sum = self.operands[0];
-            for (i, operator) in operator_perm.iter().enumerate() {
-                let rhs = self.operands[i+1];
-                match operator {
-                    '+' => sum += rhs,
-                    '*' => sum *= rhs,
-                    '|' => {
-                        let digits_of_rhs = rhs.to_string().len();
-                        sum *= 10_i128.pow(digits_of_rhs as u32);
-                        sum += rhs;
-                    },
-                    _ => unreachable!(),
-                }
-                if sum > self.result {
-                    break;
-                }
-            }
-            if sum == self.result {
-                return true;
-            }
+        if concat_enabled {
+            self.munch(sum, 1, '+', concat_enabled).or(self.munch(sum, 1, '*', concat_enabled)).or(self.munch(sum, 1, '|', concat_enabled)) == Some(self.result)
+        } else {
+            self.munch(sum, 1, '+', concat_enabled).or(self.munch(sum, 1, '*', concat_enabled)) == Some(self.result)
         }
-
-        false
     }
+
 }
 
 fn parse(input: &str) -> Vec<Operation> {
@@ -79,7 +56,7 @@ fn part_one(input: &str) -> i128 {
     let inputs = parse(input);
     let mut sum = 0;
     for operation in inputs {
-        if operation.is_valid(['+', '*'].to_vec()) {
+        if operation.is_valid_recursive(false) {
             sum += operation.result;
         }
     }
@@ -90,7 +67,7 @@ fn part_two(input: &str) -> i128 {
     let inputs = parse(input);
     let mut sum = 0;
     for operation in inputs {
-        if operation.is_valid_recursive() {
+        if operation.is_valid_recursive(true) {
             sum += operation.result;
         }
     }
