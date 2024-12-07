@@ -16,9 +16,8 @@ impl Operation {
             '+' => sum += rhs,
             '*' => sum *= rhs,
             '|' => {
-                let digits_of_rhs = rhs.to_string().len();
-                sum *= 10_i128.pow(digits_of_rhs as u32);
-                sum += rhs;
+                let sum_math = sum * i128::pow(10, f64::log(rhs as f64, 10f64).floor() as u32 + 1) + rhs;
+                sum = sum_math;
             },
             _ => unreachable!(),
         };
