@@ -1,11 +1,11 @@
 
 struct Operation {
-    result: i128,
-    operands: Vec<i128>,
+    result: u64,
+    operands: Vec<u64>,
 }
 
 impl Operation {
-    fn munch(&self, curr_sum: i128, i: usize, operator: char, concat_enabled: bool) -> Option<i128> {
+    fn munch(&self, curr_sum: u64, i: usize, operator: char, concat_enabled: bool) -> Option<u64> {
         let mut sum = curr_sum;
         if i >= self.operands.len() {
             return None;
@@ -15,7 +15,7 @@ impl Operation {
             '+' => sum += rhs,
             '*' => sum *= rhs,
             '|' => {
-                let sum_math = sum * i128::pow(10, f64::log(rhs as f64, 10f64).floor() as u32 + 1) + rhs;
+                let sum_math = sum * u64::pow(10, f64::log(rhs as f64, 10f64).floor() as u32 + 1) + rhs;
                 sum = sum_math;
             },
             _ => unreachable!(),
@@ -46,13 +46,13 @@ impl Operation {
 fn parse(input: &str) -> Vec<Operation> {
     input.lines().map(|line| {
         let (res_str, operands_str) = line.split_once(':').unwrap();
-        let res = res_str.parse::<i128>().unwrap();
-        let operands = operands_str.trim().split(' ').map(|num| num.parse::<i128>().unwrap()).collect::<Vec<i128>>();
+        let res = res_str.parse::<u64>().unwrap();
+        let operands = operands_str.trim().split(' ').map(|num| num.parse::<u64>().unwrap()).collect::<Vec<u64>>();
         Operation{result:res, operands}
     }).collect()
 }
 
-fn part_one(input: &str) -> i128 {
+fn part_one(input: &str) -> u64 {
     let inputs = parse(input);
     let mut sum = 0;
     for operation in inputs {
@@ -63,7 +63,7 @@ fn part_one(input: &str) -> i128 {
     sum
 }
 
-fn part_two(input: &str) -> i128 {
+fn part_two(input: &str) -> u64 {
     let inputs = parse(input);
     let mut sum = 0;
     for operation in inputs {
