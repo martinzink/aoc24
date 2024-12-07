@@ -39,6 +39,7 @@ fn count_distance(input: &str) -> HashSet<Coord> {
     let mut visited_coords = HashSet::new();
     let mut diff = Coord(-1, 0);
 
+    visited_coords.insert(guard_coord);
     loop {
         let next_guard_cord = &guard_coord + &diff;
         if next_guard_cord.0 < 0 || next_guard_cord.1 < 0 {
@@ -146,5 +147,5 @@ mod tests {
 fn main() {
     const INPUT: &str = include_str!("input.txt");
     println!("{} part one: {}", env!("CARGO_PKG_NAME"), part_one(INPUT));
-    println!("{} part two: {}", env!("CARGO_PKG_NAME"), part_two(INPUT));
+    //println!("{} part two: {}", env!("CARGO_PKG_NAME"), part_two(INPUT));
 }
