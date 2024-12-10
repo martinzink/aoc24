@@ -66,6 +66,18 @@ name = "day09"
 version = "0.1.0"
 
 [[package]]
+name = "day10"
+version = "0.1.0"
+dependencies = [
+ "petgraph",
+ "utils",
+]
+
+[[package]]
+name = "day11"
+version = "0.1.0"
+
+[[package]]
 name = "equivalent"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
