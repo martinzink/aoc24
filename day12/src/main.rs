@@ -41,7 +41,7 @@ struct Fields {
 
 impl Fields {
     fn new(input: &str) -> Self {
-        let matrix = utils::parse_matrix(input);
+        let matrix = utils::matrix::parse_matrix(input);
         let mut graph = Graph::new();
         let mut node_indices = HashMap::new();
 
