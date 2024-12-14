@@ -64,7 +64,7 @@ impl Coord {
 }
 
 fn part_one(input: &str) -> u64 {
-    let matrix = utils::parse_matrix(input);
+    let matrix = utils::matrix::parse_matrix(input);
     let max_i = matrix.len() as i32 - 1;
     let max_j = matrix[0].len() as i32 - 1;
     let mut antenna_types = HashMap::new();
@@ -80,7 +80,6 @@ fn part_one(input: &str) -> u64 {
 
     let mut anti_nodes = HashSet::new();
 
-    let mut anti_node_insertions = 0;
     for (_antenna_type, antennas) in &antenna_types {
         for (i, antenna_coord_i) in antennas.iter().enumerate() {
             for (j, antenna_coord_j) in antennas.iter().enumerate() {
@@ -90,7 +89,6 @@ fn part_one(input: &str) -> u64 {
                 let anti_nodes_i_j = antenna_coord_i.calculate_antinodes(antenna_coord_j);
                 anti_nodes.insert(anti_nodes_i_j[0]);
                 anti_nodes.insert(anti_nodes_i_j[1]);
-                anti_node_insertions += 2;
             }
         }
     }
@@ -99,7 +97,7 @@ fn part_one(input: &str) -> u64 {
 }
 
 fn part_two(input: &str) -> u64 {
-    let matrix = utils::parse_matrix(input);
+    let matrix = utils::matrix::parse_matrix(input);
     let max_i = matrix.len() as i32 - 1;
     let max_j = matrix[0].len() as i32 - 1;
     let mut antenna_types = HashMap::new();

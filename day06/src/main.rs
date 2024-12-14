@@ -13,17 +13,12 @@ impl Add for &Coord {
     }
 }
 
-
-fn parse(input: &str) {
-    let matrix = utils::parse_matrix(input);
-}
-
 fn has_obstacle(coord: &Coord, matrix: &Vec<Vec<char>>) -> bool {
     matrix.get(coord.0 as usize).map(|r|r.get(coord.1 as usize)).unwrap_or(Some(&'.')).unwrap_or(&'.') == &'#'
 }
 
 fn get_path_no_cycle(input: &str) -> Vec<(Coord, Coord)> {
-    let matrix = utils::parse_matrix(input);
+    let matrix = utils::matrix::parse_matrix(input);
     let mut guard_coord = Coord(0i32, 0i32);
     let mut max_i = 0;
     let mut max_j = 0;
@@ -117,15 +112,15 @@ fn check_for_loop (max_i: i32, max_j: i32, matrix: &Vec<Vec<char>>, guard_init_c
 }
 
 fn part_two(input: &str) -> i32 {
-    let mut matrix = utils::parse_matrix(input);
+    let mut matrix = utils::matrix::parse_matrix(input);
     let max_i = matrix.len() - 1;
     let max_j = matrix[0].len() - 1;
     let coords_to_check = get_path_no_cycle(input);
 
     let mut filtered_coords_to_check : Vec<(Coord, Coord)> = Vec::new();
     for coord_to_check in coords_to_check {
-        let a = filtered_coords_to_check.iter().find(|(a,b )| { *a==coord_to_check.0});
-        if (a.is_none()) {
+        let a = filtered_coords_to_check.iter().find(|(a,_b )| { *a==coord_to_check.0});
+        if a.is_none() {
             filtered_coords_to_check.push(coord_to_check);
         }
     }
@@ -133,7 +128,7 @@ fn part_two(input: &str) -> i32 {
     let mut obstacles_that_make_cycle = HashSet::new();
     for ctc in filtered_coords_to_check.windows(2) {
         let guard_coord = ctc[0];
-        let mut possible_obstacle = ctc[1].0;
+        let possible_obstacle = ctc[1].0;
         matrix[possible_obstacle.0 as usize][possible_obstacle.1 as usize] = '#';
         if check_for_loop(max_i as i32, max_j as i32, &matrix, &guard_coord) {
             obstacles_that_make_cycle.insert(possible_obstacle);

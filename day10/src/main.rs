@@ -33,7 +33,7 @@ struct TopographicMap {
 
 impl TopographicMap {
     fn new(input: &str) -> Self {
-        let matrix = utils::parse_matrix(input);
+        let matrix = utils::matrix::parse_matrix(input);
         let mut graph = DiGraph::new();
         let mut node_indices = HashMap::new();
         let mut height_map : HashMap<i32, Vec<Coord>> = HashMap::new();

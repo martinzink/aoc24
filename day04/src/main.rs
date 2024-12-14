@@ -68,16 +68,16 @@ fn sum_x(vec: &Vec<Vec<char>>) -> i32 {
 }
 
 fn part_two(input: &str) -> i32 {
-    let word_searcher = utils::parse_matrix(input);
+    let word_searcher = utils::matrix::parse_matrix(input);
     sum_x(&word_searcher)
 }
 
 fn part_one(input: &str) -> i32 {
-    let word_searcher = utils::parse_matrix(input);
+    let word_searcher = utils::matrix::parse_matrix(input);
     let mut full_sum = 0;
     full_sum += sum_horizontal(&word_searcher);
     full_sum += sum_diagonal(&word_searcher);
-    let transposed = utils::transpose_matrix(word_searcher);
+    let transposed = utils::matrix::transpose_matrix(word_searcher);
     full_sum += sum_horizontal(&transposed);
 
     full_sum

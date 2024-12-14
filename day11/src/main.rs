@@ -15,14 +15,6 @@ fn transform_stone(stone: u64) -> Vec<u64>{
     }
 }
 
-fn transform_stones(stones: Vec<u64>) -> Vec<u64>{
-    let mut res = Vec::new();
-    for stone in stones {
-        res.append(&mut transform_stone(stone));
-    }
-    res
-}
-
 fn blink_at_stone(stone: u64, blinks: usize, memo: &mut HashMap<(u64, usize), u64>) -> u64 {
     if blinks == 0 {
         return 1;
@@ -39,7 +31,7 @@ fn blink_at_stone(stone: u64, blinks: usize, memo: &mut HashMap<(u64, usize), u6
 }
 
 fn part_one(input: &str) -> u64 {
-    let mut stones = input.split_ascii_whitespace().map(|x_str| x_str.parse::<u64>().unwrap()).collect::<Vec<u64>>();
+    let stones = input.split_ascii_whitespace().map(|x_str| x_str.parse::<u64>().unwrap()).collect::<Vec<u64>>();
     let mut cache = HashMap::new();
     let mut sum = 0;
     for stone in stones {
@@ -49,7 +41,7 @@ fn part_one(input: &str) -> u64 {
 }
 
 fn part_two(input: &str) -> u64 {
-    let mut stones = input.split_ascii_whitespace().map(|x_str| x_str.parse::<u64>().unwrap()).collect::<Vec<u64>>();
+    let stones = input.split_ascii_whitespace().map(|x_str| x_str.parse::<u64>().unwrap()).collect::<Vec<u64>>();
     let mut cache = HashMap::new();
     let mut sum = 0;
     for stone in stones {
