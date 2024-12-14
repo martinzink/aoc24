@@ -68,7 +68,7 @@ fn visualize_robot_coords(robot_coords: &Vec<Coord>, max_x: usize, max_y: usize)
 
 fn part_one(input:&str, max_x: usize, max_y: usize) -> i32 {
     let mut robots = Robot::parse_robots(input);
-    for i in 0..100 {
+    for _i in 0..100 {
         for robot in &mut robots {
             robot.move_once(max_x as i32, max_y as i32);
         }
@@ -95,6 +95,9 @@ fn part_two(input:&str, max_x: usize, max_y: usize) -> i32 {
         if score == max_score {
             max_score_i = i;
         }
+        if max_score > 3000 {
+            break;
+        }
         println!("{} max score i={}, max_score={}", i, max_score_i, max_score);
     }
     let mut max_arrangement = Vec::new();
@@ -109,7 +112,7 @@ fn part_two(input:&str, max_x: usize, max_y: usize) -> i32 {
 fn main() {
     const INPUT: &str = include_str!("input.txt");
     println!("{} part one: {}", env!("CARGO_PKG_NAME"), part_one(INPUT, 100, 102));
-    println!("{} part one: {}", env!("CARGO_PKG_NAME"), part_two(INPUT, 100, 102));
+    println!("{} part two: {}", env!("CARGO_PKG_NAME"), part_two(INPUT, 100, 102));
 }
 
 #[cfg(test)]
