@@ -1,4 +1,4 @@
-use regex::Regex;
+use std::collections::HashSet;
 use utils::coord::Coord;
 
 fn parse(input: &str, widen: bool) -> (Vec<Vec<char>>, Vec<Coord>, Coord) {
@@ -39,6 +39,9 @@ fn get_matrix_score(matrix: Vec<Vec<char>>) -> i32 {
             if *c == 'O' {
                 sum += 100*i + j;
             }
+            if *c == '[' {
+                sum += 100*i + j;
+            }
         }
     }
     sum as i32
@@ -47,38 +50,59 @@ fn get_matrix_score(matrix: Vec<Vec<char>>) -> i32 {
 
 fn move_boxes(matrix: &mut Vec<Vec<char>>, dirs: &Vec<Coord>, mut user_coord: Coord) {
     for dir in dirs.iter() {
-        let wide_box = dir.y != 0;
-        let mut first_box : Option<Coord> = None;
-        let mut first_non_box = None;
-        let mut pointer = user_coord;
-        while first_non_box.is_none() {
-            pointer += *dir;
-            let val = matrix.get(pointer.x as usize).and_then(|c| {c.get(pointer.y as usize)});
-            match val {
-                None => { panic!("Should be a border of walls") }
-                Some('O') => {
-                    if first_box.is_none() {
-                        first_box = Some(pointer);
-                    }
-                }
-                Some(c) => { first_non_box = Some(*c);}
-            }
-            match first_non_box {
-                None => { }
-                Some('.') => {
-                    if (first_box.is_some()) {
-                        matrix[first_box.unwrap().x as usize][first_box.unwrap().y as usize] = '.';
-                        matrix[pointer.x as usize][pointer.y as usize] = 'O';
-                    }
-                    user_coord += *dir;
-                }
-                Some('#') => {
+        let mut clear_coords = HashSet::new();
+        let mut coords_that_move = HashSet::new();
+        let mut move_possible = true;
+        coords_that_move.insert((user_coord, '.'));
+        let mut work_coords = coords_that_move.clone();
+        while move_possible && work_coords.len() > 0 {
+            let mut more_coords_that_move = HashSet::new();
+            for (coord_that_move, _) in work_coords.iter() {
 
-                }
-                _ => {
-                    panic!("Should have found a non-box");
+                let pointer = coord_that_move + *dir;
+                let val = matrix.get(pointer.x as usize).and_then(|c| {c.get(pointer.y as usize)});
+                match val {
+                    None => { panic!("Should be a border of walls") }
+                    Some('O') => {
+                        more_coords_that_move.insert((pointer, 'O'));
+                    }
+                    Some('[') => {
+                        more_coords_that_move.insert((pointer, '['));
+                        more_coords_that_move.insert((Coord::new(pointer.x, pointer.y + 1), ']'));
+                        clear_coords.insert(Coord::new(coord_that_move.x, coord_that_move.y+1));
+                    }
+                    Some(']') => {
+                        more_coords_that_move.insert((pointer, ']'));
+                        more_coords_that_move.insert((Coord::new(pointer.x, pointer.y - 1), '['));
+                        clear_coords.insert(Coord::new(coord_that_move.x, coord_that_move.y-1));
+
+                    }
+
+                    Some('#') => {
+                        move_possible = false;
+                    }
+
+                    Some('.') => {
+
+                    }
+                    _ => {
+                        panic!("Unknown cell {:?}", val);
+                    }
                 }
             }
+
+            work_coords = more_coords_that_move.clone();
+            work_coords.retain(|c| !coords_that_move.contains(c));
+            coords_that_move.extend(more_coords_that_move);
+        }
+        if move_possible {
+            for coord in clear_coords {
+                matrix[(coord.x + dir.x) as usize][(coord.y + dir.y) as usize] = '.';
+            }
+            for (coord, new_value) in coords_that_move.iter() {
+                matrix[(coord.x + dir.x) as usize][(coord.y + dir.y) as usize] = *new_value;
+            }
+            user_coord += *dir;
         }
     }
 }
@@ -91,7 +115,7 @@ fn part_one(input: &str) -> i32 {
 }
 
 fn part_two(input: &str) -> i32 {
-    let (mut matrix, dirs, mut user_coord) = parse(input, true);
+    let (mut matrix, dirs, user_coord) = parse(input, true);
     move_boxes(&mut matrix, &dirs, user_coord);
     get_matrix_score(matrix)
 }
@@ -107,11 +131,19 @@ fn main() {
 mod tests {
     use super::*;
     const EXAMPLE: &str = include_str!("example.txt");
+    const EXAMPLE_SMALL: &str = include_str!("example_small.txt");
+    const EXAMPLE_SMALL_P2: &str = include_str!("example_small_p2.txt");
 
 
     #[test]
     fn example_part_one() {
+
+        assert_eq!(part_one(EXAMPLE_SMALL), 2028);
         assert_eq!(part_one(EXAMPLE), 10092);
     }
 
+    #[test]
+    fn example_part_two() {
+        assert_eq!(part_two(EXAMPLE), 9021);
+    }
 }
