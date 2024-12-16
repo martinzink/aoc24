@@ -14,3 +14,12 @@ pub fn transpose_matrix<T>(original: Vec<Vec<T>>) -> Vec<Vec<T>> {
 
     transposed
 }
+
+pub fn print_matrix(matrix: &Vec<Vec<char>>) {
+    for row in matrix {
+        for elem in row {
+            print!("{}", elem);
+        }
+        println!();
+    }
+}

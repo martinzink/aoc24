@@ -98,7 +98,6 @@ fn part_two(input:&str, max_x: usize, max_y: usize) -> i32 {
         if max_score > 3000 {
             break;
         }
-        println!("{} max score i={}, max_score={}", i, max_score_i, max_score);
     }
     let mut max_arrangement = Vec::new();
     for robot in Robot::parse_robots(input) {

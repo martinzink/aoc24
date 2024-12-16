@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, AddAssign, Mul, Sub};
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Ord, PartialOrd)]
 pub struct Coord {
@@ -26,7 +26,17 @@ impl Add<Coord> for &Coord {
     fn add(self, rhs: Coord) -> Self::Output {
         Coord::new(self.x + rhs.x, self.y + rhs.y)
     }
+
 }
+
+impl AddAssign for Coord {
+
+    fn add_assign(&mut self, rhs: Coord) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+    }
+}
+
 
 impl Mul<i32> for Coord {
     type Output = Coord;
