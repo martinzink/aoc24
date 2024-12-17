@@ -137,7 +137,6 @@ mod tests {
 
     #[test]
     fn example_part_one() {
-
         assert_eq!(part_one(EXAMPLE_SMALL), 2028);
         assert_eq!(part_one(EXAMPLE), 10092);
     }
