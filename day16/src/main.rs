@@ -150,16 +150,21 @@ fn part_two(input: &str) -> i32 {
                 prev_parents.clear();
                 prev_parents.insert(graph.node_weight(closest_node).unwrap().0);
                 prev_parents.extend(edge_parents);
-                work_vec.push((target, next_dis));
+                match work_vec.binary_search_by(|probe| { probe.1.cmp(&next_dis).reverse() }) {
+                    Ok(pos) => { work_vec.insert(pos, (target, next_dis)) }
+                    Err(pos) => { work_vec.insert(pos, (target, next_dis)) }
+                }
             } else if (*prev_dis == next_dis) {
                 prev_parents.insert(graph.node_weight(closest_node).unwrap().0);
                 prev_parents.extend(edge_parents);
-                work_vec.push((target, next_dis));
+                match work_vec.binary_search_by(|probe| { probe.1.cmp(&next_dis).reverse() }) {
+                    Ok(pos) => { work_vec.insert(pos, (target, next_dis)) }
+                    Err(pos) => { work_vec.insert(pos, (target, next_dis)) }
+                }
             } else {
                 // noop
             }
         }
-        work_vec.sort_by(|a, b| b.1.cmp(&a.1))
     }
 
     let sum = 0;

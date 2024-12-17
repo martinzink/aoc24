@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::ops::BitXor;
 use regex::Regex;
 
@@ -8,7 +7,8 @@ struct Registers {
     b: u128,
     c: u128,
     instruction_pointer: u128,
-    output: String
+    output: String,
+    output_vec: Vec<u32>
 }
 
 impl Registers {
@@ -19,7 +19,7 @@ impl Registers {
         let a = captures[1].parse::<u128>().unwrap();
         let b = captures[2].parse::<u128>().unwrap();
         let c = captures[3].parse::<u128>().unwrap();
-        Self { a, b, c, instruction_pointer: 0, output: String::new() }
+        Self { a, b, c, instruction_pointer: 0, output: String::new(), output_vec: Vec::new() }
     }
 }
 
@@ -69,6 +69,7 @@ fn out(operand: u128, registers: &mut Registers) {
     } else {
         registers.output += format!(",{}", get_combo_operand(operand, registers) % 8).as_str();
     }
+    registers.output_vec.push(get_combo_operand(operand, registers) % 8);
     registers.instruction_pointer += 2;
 }
 
@@ -86,7 +87,7 @@ fn cdv(operand: u128, registers: &mut Registers) {
     registers.instruction_pointer += 2;
 }
 
-fn calc(mut registers: Registers, codes: &Vec<u128>) -> String {
+fn calc(mut registers: Registers, codes: &Vec<u128>) -> (String, Vec<u32>) {
     let mut instruction_pointer = registers.instruction_pointer;
     while instruction_pointer < codes.len() as u128 {
         let instruction_opcode = codes[instruction_pointer as usize];
@@ -104,80 +105,18 @@ fn calc(mut registers: Registers, codes: &Vec<u128>) -> String {
         }
         instruction_pointer = registers.instruction_pointer;
     }
-    registers.output
-}
-
-fn calc_part_2(mut registers: Registers, codes: &Vec<u128>) -> bool {
-    let target_output = codes
-        .iter()
-        .map(|num| num.to_string())
-        .collect::<Vec<_>>()
-        .join(",");
-    let mut instruction_pointer = registers.instruction_pointer;
-    while instruction_pointer < codes.len() as u128 {
-        let mut inputs_visited = HashSet::new();
-        let instruction_opcode = codes[instruction_pointer as usize];
-        let operand = codes[instruction_pointer as usize + 1];
-        match instruction_opcode {
-            0 => adv(operand, &mut registers),
-            1 => bxl(operand, &mut registers),
-            2 => bst(operand, &mut registers),
-            3 => jnz(operand, &mut registers),
-            4 => bxc(operand, &mut registers),
-            5 => out(operand, &mut registers),
-            6 => bdv(operand, &mut registers),
-            7 => cdv(operand, &mut registers),
-            _ => { panic!("Invalid instruction opcode"); }
-        }
-        instruction_pointer = registers.instruction_pointer;
-        if !inputs_visited.insert(registers.clone()) {
-            return false
-        }
-        if !target_output.starts_with(&registers.output) {
-            return false;
-        }
-    }
-
-    target_output == registers.output
+    (registers.output, registers.output_vec)
 }
 
 fn part_one(input: &str) -> String {
     let (regs, code_str) = input.split_once("\n\n").unwrap();
-    let mut registers = Registers::new(regs);
+    let registers = Registers::new(regs);
     let (_, only_code_str) = code_str.split_once(" ").unwrap();
     let codes = only_code_str.split(",").map(|a| {a.parse::<u128>().unwrap()}).collect::<Vec<u128>>();
-    calc(registers, &codes)
+    calc(registers, &codes).0
 }
 
 
-fn matches_from_right(a: &Vec<u32>, b: &Vec<u32>) -> u32 {
-    assert_eq!(a.len(), b.len());
-    println!("{:?}, {:?}", a, b);
-    let mut sum = 0;
-    let mut misses = 0;
-    for (a, b) in a.iter().rev().zip(b.iter().rev()) {
-        if a == b {
-            sum += 1;
-        } else {
-            misses += 1;
-            if (misses == 2) {
-                return sum;
-            }
-        }
-    }
-    sum
-}
-
-fn calc_matches(mut registers: Registers, codes: &Vec<u128>) -> u32 {
-    let target_output = codes
-        .iter()
-        .map(|num| num.to_string())
-        .collect::<Vec<_>>()
-        .join(",").chars().filter(|c| *c != ',').map(|c| c.to_digit(10).unwrap()).collect::<Vec<u32>>();
-
-    let output = calc(registers.clone(), &codes).chars().filter(|c| *c != ',').map(|c| c.to_digit(10).unwrap()).collect::<Vec<u32>>();
-    matches_from_right(&target_output, &output)
-}
 
 fn part_two(input: &str) -> u128 {
     let (regs, code_str) = input.split_once("\n\n").unwrap();
@@ -185,21 +124,25 @@ fn part_two(input: &str) -> u128 {
     let codes = only_code_str.split(",").map(|a| {a.parse::<u128>().unwrap()}).collect::<Vec<u128>>();
     let mut registers = Registers::new(regs);
 
-    let a = 8u128.pow(16) - 8u128.pow(15);
-    println!("{}", a);
-    let mut min = 8u128.pow(15);
-    let mut max = 8u128.pow(16) - 1;
-
-
-    for i in min..max {
-        registers.a = i;
-        let output = calc(registers.clone(), &codes);
-        println!("{:#o} -> {}", i, output);
-
+    let mut valid = Vec::new();
+    valid.push(0);
+    for _ in 0..codes.len() {
+        let old_valid = valid;
+        valid = Vec::new();
+        for num in old_valid {
+            for offset in 0..8u128 {
+                let new_num = 8 * num + offset;
+                registers.a = new_num as u128;
+                let res = calc(registers.clone(), &codes).1;
+                let a = codes.iter().rev().take(res.len()).rev().collect::<Vec<_>>();
+                if a.iter().zip(res).all(|(a,b)| **a==b as u128) {
+                    valid.push(new_num);
+                }
+            }
+        }
     }
 
-    println!("{} vs {:?}", calc(registers.clone(), &codes), &codes);
-    0
+    *valid.iter().min().unwrap()
 }
 
 fn main() {
