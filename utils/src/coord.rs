@@ -10,6 +10,10 @@ impl Coord {
     pub fn new(x: i32, y: i32) -> Self {
         Coord { x, y }
     }
+
+    pub fn get_neighbours(&self) -> Vec<Coord> {
+        vec![Self::new(self.x, self.y - 1),Self::new(self.x, self.y + 1),Self::new(self.x -1 , self.y),Self::new(self.x +1 , self.y)]
+    }
 }
 
 impl Sub for &Coord {
