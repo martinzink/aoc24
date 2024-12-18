@@ -1,4 +1,5 @@
-use std::collections::{HashMap, HashSet};
+use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, Write};
 use std::process::Command;
@@ -128,17 +129,31 @@ fn part_one(input: &str) -> i32 {
     min_score
 }
 
+#[derive(PartialEq, Eq, Debug)]
+struct WorkNode(petgraph::graph::NodeIndex, i32);
+
+impl PartialOrd for WorkNode {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        other.1.partial_cmp(&self.1)
+    }
+}
+
+impl Ord for WorkNode {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.1.cmp(&self.1)
+    }
+}
+
 fn part_two(input: &str) -> i32 {
     let (graph, sid, eids) = parse_graph(input);
     let mut map = HashMap::new();
     let mut def = HashSet::new();
     def.insert(graph.node_weight(sid).unwrap().0);
     map.insert(sid, (0, def));
-    let mut work_vec = Vec::new();
-    work_vec.push((sid, 0));
+    let mut work_vec: BinaryHeap<WorkNode> = BinaryHeap::new();
+    work_vec.push(WorkNode(sid, 0));
     while !work_vec.is_empty() {
-        let (closest_node, dis) = work_vec.pop().unwrap();
-
+        let WorkNode(closest_node, dis) = work_vec.pop().unwrap();
         let edges_from_closest = graph.edges_directed(closest_node, petgraph::Direction::Outgoing);
         for edge in edges_from_closest {
             let next_dis = dis + edge.weight();
@@ -150,17 +165,11 @@ fn part_two(input: &str) -> i32 {
                 prev_parents.clear();
                 prev_parents.insert(graph.node_weight(closest_node).unwrap().0);
                 prev_parents.extend(edge_parents);
-                match work_vec.binary_search_by(|probe| { probe.1.cmp(&next_dis).reverse() }) {
-                    Ok(pos) => { work_vec.insert(pos, (target, next_dis)) }
-                    Err(pos) => { work_vec.insert(pos, (target, next_dis)) }
-                }
+                work_vec.push(WorkNode(target, next_dis));
             } else if (*prev_dis == next_dis) {
                 prev_parents.insert(graph.node_weight(closest_node).unwrap().0);
                 prev_parents.extend(edge_parents);
-                match work_vec.binary_search_by(|probe| { probe.1.cmp(&next_dis).reverse() }) {
-                    Ok(pos) => { work_vec.insert(pos, (target, next_dis)) }
-                    Err(pos) => { work_vec.insert(pos, (target, next_dis)) }
-                }
+                work_vec.push(WorkNode(target, next_dis));
             } else {
                 // noop
             }
