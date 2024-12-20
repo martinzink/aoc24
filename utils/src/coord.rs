@@ -14,6 +14,10 @@ impl Coord {
     pub fn get_neighbours(&self) -> Vec<Coord> {
         vec![Self::new(self.x, self.y - 1),Self::new(self.x, self.y + 1),Self::new(self.x -1 , self.y),Self::new(self.x +1 , self.y)]
     }
+
+    pub fn distance(&self, rhs: &Coord) -> u32 {
+        self.x.abs_diff(rhs.x) + self.y.abs_diff(rhs.y)
+    }
 }
 
 impl Sub for &Coord {
