@@ -1,10 +1,10 @@
+use petgraph::dot::{Config, Dot};
+use petgraph::graph::DiGraph;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::ops::Add;
 use std::process::Command;
-use petgraph::dot::{Config, Dot};
-use petgraph::graph::DiGraph;
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Ord, PartialOrd)]
 struct Coord(i32, i32);
 
@@ -18,16 +18,16 @@ impl Add for Coord {
 
 fn get_neighbour_indices(c: Coord) -> Vec<Coord> {
     let mut res = Vec::with_capacity(4);
-    res.push(c+Coord(1, 0));
-    res.push(c+Coord(0, 1));
-    res.push(c+Coord(-1, 0));
-    res.push(c+Coord(0, -1));
+    res.push(c + Coord(1, 0));
+    res.push(c + Coord(0, 1));
+    res.push(c + Coord(-1, 0));
+    res.push(c + Coord(0, -1));
     res
 }
 
 struct TopographicMap {
     graph: DiGraph<i32, i32>,
-    height_map : HashMap<i32, Vec<Coord>>,
+    height_map: HashMap<i32, Vec<Coord>>,
     node_indices: HashMap<Coord, petgraph::graph::NodeIndex>,
 }
 
@@ -36,12 +36,15 @@ impl TopographicMap {
         let matrix = utils::matrix::parse_matrix(input);
         let mut graph = DiGraph::new();
         let mut node_indices = HashMap::new();
-        let mut height_map : HashMap<i32, Vec<Coord>> = HashMap::new();
+        let mut height_map: HashMap<i32, Vec<Coord>> = HashMap::new();
 
         matrix.iter().enumerate().for_each(|(i, row)| {
             row.iter().enumerate().for_each(|(j, char)| {
                 let height = char.to_digit(10).unwrap() as i32;
-                height_map.entry(height).or_default().push(Coord(i as i32, j as i32));
+                height_map
+                    .entry(height)
+                    .or_default()
+                    .push(Coord(i as i32, j as i32));
                 node_indices.insert(Coord(i as i32, j as i32), graph.add_node(height));
             })
         });
@@ -63,21 +66,33 @@ impl TopographicMap {
                 }
             }
         }
-        Self { graph, height_map, node_indices }
+        Self {
+            graph,
+            height_map,
+            node_indices,
+        }
     }
 
     fn export_to_png(&self, filename: &str) {
-        let dot_data = format!("{:?}", Dot::with_config(&self.graph, &[Config::EdgeNoLabel]));
-        let mut file = File::create(std::format!("{}.dot", filename)).expect("Error creating DOT file");
-        file.write_all(dot_data.as_bytes()).expect("Error writing to DOT file");
+        let dot_data = format!(
+            "{:?}",
+            Dot::with_config(&self.graph, &[Config::EdgeNoLabel])
+        );
+        let mut file =
+            File::create(std::format!("{}.dot", filename)).expect("Error creating DOT file");
+        file.write_all(dot_data.as_bytes())
+            .expect("Error writing to DOT file");
         Command::new("sh")
             .arg("-c")
-            .arg(std::format!("dot -Tpng {}.dot -o {}.png", filename, filename))
+            .arg(std::format!(
+                "dot -Tpng {}.dot -o {}.png",
+                filename,
+                filename
+            ))
             .output()
             .expect("failed to execute process");
     }
 }
-
 
 fn part_one(input: &str) -> u64 {
     let map = TopographicMap::new(input);
@@ -102,7 +117,14 @@ fn part_two(input: &str) -> u64 {
         for mountain_top in mountain_tops {
             let mountain_top_node_id = map.node_indices.get(&mountain_top).unwrap();
             assert_eq!(map.graph.node_weight(*mountain_top_node_id), Some(&9));
-            sum += petgraph::algo::simple_paths::all_simple_paths::<Vec<_>, _>(&map.graph, *trailhead_node_id, *mountain_top_node_id, 8, None).count();
+            sum += petgraph::algo::simple_paths::all_simple_paths::<Vec<_>, _>(
+                &map.graph,
+                *trailhead_node_id,
+                *mountain_top_node_id,
+                8,
+                None,
+            )
+            .count();
         }
     }
     sum as u64

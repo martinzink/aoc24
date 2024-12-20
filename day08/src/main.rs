@@ -25,30 +25,35 @@ impl Mul<i32> for Coord {
     type Output = Coord;
 
     fn mul(self, rhs: i32) -> Self::Output {
-        Coord(self.0*rhs, self.1*rhs)
+        Coord(self.0 * rhs, self.1 * rhs)
     }
 }
 
 impl Coord {
     fn calculate_antinodes(&self, rhs: &Coord) -> [Coord; 2] {
         let diff: Coord = self - rhs;
-        [self+diff, rhs-&diff]
+        [self + diff, rhs - &diff]
     }
 
-    fn within_bounds (&self, max_i: i32, max_j: i32) -> bool {
+    fn within_bounds(&self, max_i: i32, max_j: i32) -> bool {
         self.0 <= max_i && self.1 <= max_j && self.0 >= 0 && self.1 >= 0
     }
 
-    fn calculate_antinodes_with_resonant_harmonics(&self, rhs: &Coord, max_i: i32, max_j: i32) -> Vec<Coord> {
+    fn calculate_antinodes_with_resonant_harmonics(
+        &self,
+        rhs: &Coord,
+        max_i: i32,
+        max_j: i32,
+    ) -> Vec<Coord> {
         let diff: Coord = self - rhs;
         let mut res: Vec<Coord> = Vec::new();
         let mut added_antinode = true;
         let mut i = 0;
         while added_antinode {
             added_antinode = false;
-            let diff_i = diff*i;
-            let harmonics_1 = self+diff_i;
-            let harmonics_2 = rhs-&diff_i;
+            let diff_i = diff * i;
+            let harmonics_1 = self + diff_i;
+            let harmonics_2 = rhs - &diff_i;
             if harmonics_1.within_bounds(max_i, max_j) {
                 res.push(harmonics_1);
                 added_antinode = true;
@@ -69,11 +74,14 @@ fn part_one(input: &str) -> u64 {
     let max_j = matrix[0].len() as i32 - 1;
     let mut antenna_types = HashMap::new();
     for i in 0..matrix.len() {
-        for j in  0..matrix[0].len() {
+        for j in 0..matrix[0].len() {
             let char = matrix[i][j];
             match char {
-                '.' => {},
-                x => antenna_types.entry(x).or_insert(vec![]).push(Coord(i as i32, j as i32)),
+                '.' => {}
+                x => antenna_types
+                    .entry(x)
+                    .or_insert(vec![])
+                    .push(Coord(i as i32, j as i32)),
             }
         }
     }
@@ -92,8 +100,10 @@ fn part_one(input: &str) -> u64 {
             }
         }
     }
-    anti_nodes.iter().filter(|coord| {coord.0 >= 0 && coord.1 >= 0 && coord.0 <= max_i && coord.1 <= max_j}).count() as u64
-
+    anti_nodes
+        .iter()
+        .filter(|coord| coord.0 >= 0 && coord.1 >= 0 && coord.0 <= max_i && coord.1 <= max_j)
+        .count() as u64
 }
 
 fn part_two(input: &str) -> u64 {
@@ -102,11 +112,14 @@ fn part_two(input: &str) -> u64 {
     let max_j = matrix[0].len() as i32 - 1;
     let mut antenna_types = HashMap::new();
     for i in 0..matrix.len() {
-        for j in  0..matrix[0].len() {
+        for j in 0..matrix[0].len() {
             let char = matrix[i][j];
             match char {
-                '.' => {},
-                x => antenna_types.entry(x).or_insert(vec![]).push(Coord(i as i32, j as i32)),
+                '.' => {}
+                x => antenna_types
+                    .entry(x)
+                    .or_insert(vec![])
+                    .push(Coord(i as i32, j as i32)),
             }
         }
     }
@@ -119,7 +132,11 @@ fn part_two(input: &str) -> u64 {
                 if i == j {
                     continue;
                 }
-                let anti_nodes_i_j = antenna_coord_i.calculate_antinodes_with_resonant_harmonics(antenna_coord_j, max_i, max_j);
+                let anti_nodes_i_j = antenna_coord_i.calculate_antinodes_with_resonant_harmonics(
+                    antenna_coord_j,
+                    max_i,
+                    max_j,
+                );
                 for anti_node_i_j in anti_nodes_i_j {
                     anti_nodes.insert(anti_node_i_j);
                 }

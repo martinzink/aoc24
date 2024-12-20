@@ -1,5 +1,11 @@
 fn check_for_xmas(chars: &[char]) -> i32 {
-    chars.windows(4).fold(0, |sum, window| if window == ['X', 'M', 'A', 'S'] || window == ['S', 'A', 'M', 'X'] { sum + 1 } else { sum })
+    chars.windows(4).fold(0, |sum, window| {
+        if window == ['X', 'M', 'A', 'S'] || window == ['S', 'A', 'M', 'X'] {
+            sum + 1
+        } else {
+            sum
+        }
+    })
 }
 
 fn sum_horizontal(vec: &Vec<Vec<char>>) -> i32 {
@@ -15,7 +21,7 @@ fn sum_diagonal(vec: &Vec<Vec<char>>) -> i32 {
     for i in -(vec.len() as i32)..vec.len() as i32 {
         diags.push(Vec::new());
         for j in 0..vec.len() as i32 {
-            let k = j-i;
+            let k = j - i;
             if k >= 0 && k < vec[0].len() as i32 {
                 diags.last_mut().unwrap().push(vec[j as usize][k as usize]);
             }
@@ -26,7 +32,11 @@ fn sum_diagonal(vec: &Vec<Vec<char>>) -> i32 {
 
     let anti_diagonals: Vec<Vec<_>> = (0..cols)
         .map(|k| (0..rows.min(k + 1)).map(|i| vec[i][k - i]).collect())
-        .chain((1..rows).map(|k| (0..cols.min(rows - k)).map(|i| vec[i + k][cols - 1 - i]).collect()))
+        .chain((1..rows).map(|k| {
+            (0..cols.min(rows - k))
+                .map(|i| vec[i + k][cols - 1 - i])
+                .collect()
+        }))
         .collect();
     let mut sum = 0;
     for diag in diags.iter() {
@@ -38,27 +48,27 @@ fn sum_diagonal(vec: &Vec<Vec<char>>) -> i32 {
     sum
 }
 
-fn valid_pair(a: char, b: char) -> bool{
-    a=='M' && b=='S' || a=='S' && b=='M'
+fn valid_pair(a: char, b: char) -> bool {
+    a == 'M' && b == 'S' || a == 'S' && b == 'M'
 }
 
 fn check_x(vec: &Vec<Vec<char>>, center_i: usize, center_j: usize) -> bool {
     if vec[center_i][center_j] != 'A' {
         return false;
     }
-    let top_left = vec[center_i-1][center_j-1];
-    let bottom_right = vec[center_i+1][center_j+1];
+    let top_left = vec[center_i - 1][center_j - 1];
+    let bottom_right = vec[center_i + 1][center_j + 1];
 
-    let top_right = vec[center_i+1][center_j-1];
-    let bottom_left = vec[center_i-1][center_j+1];
+    let top_right = vec[center_i + 1][center_j - 1];
+    let bottom_left = vec[center_i - 1][center_j + 1];
 
     valid_pair(top_left, bottom_right) && valid_pair(top_right, bottom_left)
 }
 
 fn sum_x(vec: &Vec<Vec<char>>) -> i32 {
     let mut sum = 0;
-    for i in 1..vec.len()-1 {
-        for j in 1..vec[0].len()-1 {
+    for i in 1..vec.len() - 1 {
+        for j in 1..vec[0].len() - 1 {
             if check_x(vec, i, j) {
                 sum += 1;
             }

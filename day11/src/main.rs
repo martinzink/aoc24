@@ -1,15 +1,17 @@
 use std::collections::HashMap;
 
-fn transform_stone(stone: u64) -> Vec<u64>{
+fn transform_stone(stone: u64) -> Vec<u64> {
     match stone {
-        0 => { vec![1] }
+        0 => {
+            vec![1]
+        }
         x => {
             let x_str = x.to_string();
             if x_str.len() % 2 == 0 {
-                let (a,b) = x_str.split_at(x_str.len()/2);
+                let (a, b) = x_str.split_at(x_str.len() / 2);
                 vec![a.parse::<u64>().unwrap(), b.parse::<u64>().unwrap()]
             } else {
-                vec![x*2024]
+                vec![x * 2024]
             }
         }
     }
@@ -31,7 +33,10 @@ fn blink_at_stone(stone: u64, blinks: usize, memo: &mut HashMap<(u64, usize), u6
 }
 
 fn part_one(input: &str) -> u64 {
-    let stones = input.split_ascii_whitespace().map(|x_str| x_str.parse::<u64>().unwrap()).collect::<Vec<u64>>();
+    let stones = input
+        .split_ascii_whitespace()
+        .map(|x_str| x_str.parse::<u64>().unwrap())
+        .collect::<Vec<u64>>();
     let mut cache = HashMap::new();
     let mut sum = 0;
     for stone in stones {
@@ -41,7 +46,10 @@ fn part_one(input: &str) -> u64 {
 }
 
 fn part_two(input: &str) -> u64 {
-    let stones = input.split_ascii_whitespace().map(|x_str| x_str.parse::<u64>().unwrap()).collect::<Vec<u64>>();
+    let stones = input
+        .split_ascii_whitespace()
+        .map(|x_str| x_str.parse::<u64>().unwrap())
+        .collect::<Vec<u64>>();
     let mut cache = HashMap::new();
     let mut sum = 0;
     for stone in stones {
@@ -82,4 +90,3 @@ fn main() {
     println!("{} part one: {}", env!("CARGO_PKG_NAME"), part_one(INPUT));
     println!("{} part two: {}", env!("CARGO_PKG_NAME"), part_two(INPUT));
 }
-

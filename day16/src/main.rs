@@ -1,24 +1,23 @@
+use self::Direction::*;
+use petgraph::data::DataMap;
+use petgraph::dot::{Dot};
+use petgraph::graph::{DiGraph, NodeIndex};
+use petgraph::visit::{EdgeRef, IntoEdgesDirected, NodeRef};
+use petgraph::{Graph};
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, Write};
 use std::process::Command;
-use petgraph::algo::dijkstra;
-use petgraph::{EdgeDirection, Graph};
-use petgraph::graph::{DiGraph, NodeIndex};
 use std::slice::Iter;
-use petgraph::data::DataMap;
-use petgraph::dot::{Config, Dot};
-use petgraph::visit::{EdgeRef, IntoEdgesDirected, NodeRef};
 use utils::coord::Coord;
-use self::Direction::*;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum Direction {
     North,
     West,
     South,
-    East
+    East,
 }
 
 impl Direction {
@@ -29,28 +28,36 @@ impl Direction {
 
     pub fn get_left_right_neigbhours(&self) -> Vec<Direction> {
         match self {
-            North => { vec!{East, West}}
-            West => { vec!{North, South}}
-            South => { vec!{East, West}}
-            East => { vec!{North, South}}
+            North => {
+                vec![East, West]
+            }
+            West => {
+                vec![North, South]
+            }
+            South => {
+                vec![East, West]
+            }
+            East => {
+                vec![North, South]
+            }
         }
     }
 
     pub fn get_vector(&self) -> utils::coord::Coord {
         match self {
-            North => {utils::coord::Coord{x:0, y:-1}}
-            West => {utils::coord::Coord{x:-1, y:0}}
-            South => {utils::coord::Coord{x:0, y:1}}
-            East => {utils::coord::Coord{x:1, y:0}}
+            North => utils::coord::Coord { x: 0, y: -1 },
+            West => utils::coord::Coord { x: -1, y: 0 },
+            South => utils::coord::Coord { x: 0, y: 1 },
+            East => utils::coord::Coord { x: 1, y: 0 },
         }
     }
 
     pub fn get_opposite(&self) -> Direction {
-        match self{
-            North => {South}
-            West => {East}
-            South => {North}
-            East => {West}
+        match self {
+            North => South,
+            West => East,
+            South => North,
+            East => West,
         }
     }
 }
@@ -58,10 +65,15 @@ impl Direction {
 fn export_to_png(filename: &str, graph: &Graph<(Coord, Direction), i32>) {
     let dot_data = format!("{:?}", Dot::new(&graph));
     let mut file = File::create(std::format!("{}.dot", filename)).expect("Error creating DOT file");
-    file.write_all(dot_data.as_bytes()).expect("Error writing to DOT file");
+    file.write_all(dot_data.as_bytes())
+        .expect("Error writing to DOT file");
     Command::new("sh")
         .arg("-c")
-        .arg(std::format!("dot -Tpng {}.dot -o {}.png", filename, filename))
+        .arg(std::format!(
+            "dot -Tpng {}.dot -o {}.png",
+            filename,
+            filename
+        ))
         .output()
         .expect("failed to execute process");
 }
@@ -78,7 +90,10 @@ fn parse_graph(input: &str) -> (Graph<(Coord, Direction), i32>, NodeIndex, Vec<N
                 match *value {
                     '#' => {}
                     '.' => {
-                        node_indices.insert((Coord::new(i, j), *dir), graph.add_node((Coord::new(i, j), *dir)));
+                        node_indices.insert(
+                            (Coord::new(i, j), *dir),
+                            graph.add_node((Coord::new(i, j), *dir)),
+                        );
                     }
                     'E' => {
                         let end = graph.add_node((Coord::new(i, j), *dir));
@@ -92,7 +107,9 @@ fn parse_graph(input: &str) -> (Graph<(Coord, Direction), i32>, NodeIndex, Vec<N
                         }
                         node_indices.insert((Coord::new(i, j), *dir), start);
                     }
-                    _ => { panic!("Invalid cell")}
+                    _ => {
+                        panic!("Invalid cell")
+                    }
                 }
             }
         }
@@ -121,7 +138,7 @@ fn parse_graph(input: &str) -> (Graph<(Coord, Direction), i32>, NodeIndex, Vec<N
 
 fn part_one(input: &str) -> i32 {
     let (graph, sid, eids) = parse_graph(input);
-    let res = petgraph::algo::dijkstra(&graph, sid, None, |e| {*e.weight()});
+    let res = petgraph::algo::dijkstra(&graph, sid, None, |e| *e.weight());
     let mut min_score = i32::MAX;
     for eid in eids {
         min_score = min_score.min(res[&eid]);
@@ -176,7 +193,6 @@ fn part_two(input: &str) -> i32 {
         }
     }
 
-    let sum = 0;
     let mut min_score = i32::MAX;
     let mut min_map = 0;
     for eid in eids {
@@ -187,8 +203,6 @@ fn part_two(input: &str) -> i32 {
     }
     min_map as i32
 }
-
-
 
 fn main() {
     const INPUT: &str = include_str!("input.txt");
@@ -202,12 +216,10 @@ mod tests {
     const EXAMPLE: &str = include_str!("example.txt");
     const EXAMPLE_2: &str = include_str!("example_2.txt");
 
-
     #[test]
     fn example_part_one() {
         assert_eq!(part_one(EXAMPLE), 7036);
         assert_eq!(part_one(EXAMPLE_2), 11048);
-
     }
 
     #[test]

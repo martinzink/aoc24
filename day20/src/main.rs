@@ -16,7 +16,7 @@ pub fn get_coord_within_range(coord: &Coord, range: i32) -> Vec<Coord> {
     res
 }
 
-fn get_start_coord(matrix: &Vec<Vec<char>>) -> Coord{
+fn get_start_coord(matrix: &Vec<Vec<char>>) -> Coord {
     matrix
         .iter()
         .enumerate()
@@ -31,11 +31,20 @@ fn get_race_path(matrix: &Vec<Vec<char>>, start_coord: Coord) -> Vec<Coord> {
     let mut race_ended = false;
     while !race_ended {
         for neighbour in path.last().unwrap().get_neighbours() {
-            if let Some(neighbour_val) = matrix.get(neighbour.x as usize).and_then(|r| r.get(neighbour.y as usize)) {
+            if let Some(neighbour_val) = matrix
+                .get(neighbour.x as usize)
+                .and_then(|r| r.get(neighbour.y as usize))
+            {
                 if *neighbour_val == '#' {
                     continue;
                 }
-                if Some(&neighbour) == if path.len() > 1 { path.get(path.len() -2)} else { None } {
+                if Some(&neighbour)
+                    == if path.len() > 1 {
+                        path.get(path.len() - 2)
+                    } else {
+                        None
+                    }
+                {
                     continue;
                 }
 

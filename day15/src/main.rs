@@ -4,19 +4,29 @@ use utils::coord::Coord;
 fn parse(input: &str, widen: bool) -> (Vec<Vec<char>>, Vec<Coord>, Coord) {
     let (matrix_str, dirs_str) = input.split_once("\n\n").expect("invalid input");
     let mut matrix = if widen {
-        let wide_matrix_str = matrix_str.replace('#', "##").replace("O", "[]").replace(".", "..").replace("@", "@.");
+        let wide_matrix_str = matrix_str
+            .replace('#', "##")
+            .replace("O", "[]")
+            .replace(".", "..")
+            .replace("@", "@.");
         utils::matrix::parse_matrix(wide_matrix_str.as_str())
     } else {
         utils::matrix::parse_matrix(matrix_str.trim())
     };
 
-    let dirs = dirs_str.chars().filter(|c| { *c != '\n' }).map(|c|{ match c {
-        '<' => {Coord::new(0, -1)}
-        '>' => {Coord::new(0, 1)}
-        '^' => {Coord::new(-1, 0)}
-        'v' => {Coord::new(1, 0)}
-        _ => { panic!("unknown direction {}", c); }
-    }}).collect();
+    let dirs = dirs_str
+        .chars()
+        .filter(|c| *c != '\n')
+        .map(|c| match c {
+            '<' => Coord::new(0, -1),
+            '>' => Coord::new(0, 1),
+            '^' => Coord::new(-1, 0),
+            'v' => Coord::new(1, 0),
+            _ => {
+                panic!("unknown direction {}", c);
+            }
+        })
+        .collect();
     let mut user_coord = Coord::new(0, 0);
     for (i, row) in matrix.iter_mut().enumerate() {
         for (j, c) in row.iter_mut().enumerate() {
@@ -37,16 +47,15 @@ fn get_matrix_score(matrix: Vec<Vec<char>>) -> i32 {
     for (i, row) in matrix.iter().enumerate() {
         for (j, c) in row.iter().enumerate() {
             if *c == 'O' {
-                sum += 100*i + j;
+                sum += 100 * i + j;
             }
             if *c == '[' {
-                sum += 100*i + j;
+                sum += 100 * i + j;
             }
         }
     }
     sum as i32
 }
-
 
 fn move_boxes(matrix: &mut Vec<Vec<char>>, dirs: &Vec<Coord>, mut user_coord: Coord) {
     for dir in dirs.iter() {
@@ -58,33 +67,33 @@ fn move_boxes(matrix: &mut Vec<Vec<char>>, dirs: &Vec<Coord>, mut user_coord: Co
         while move_possible && work_coords.len() > 0 {
             let mut more_coords_that_move = HashSet::new();
             for (coord_that_move, _) in work_coords.iter() {
-
                 let pointer = coord_that_move + *dir;
-                let val = matrix.get(pointer.x as usize).and_then(|c| {c.get(pointer.y as usize)});
+                let val = matrix
+                    .get(pointer.x as usize)
+                    .and_then(|c| c.get(pointer.y as usize));
                 match val {
-                    None => { panic!("Should be a border of walls") }
+                    None => {
+                        panic!("Should be a border of walls")
+                    }
                     Some('O') => {
                         more_coords_that_move.insert((pointer, 'O'));
                     }
                     Some('[') => {
                         more_coords_that_move.insert((pointer, '['));
                         more_coords_that_move.insert((Coord::new(pointer.x, pointer.y + 1), ']'));
-                        clear_coords.insert(Coord::new(coord_that_move.x, coord_that_move.y+1));
+                        clear_coords.insert(Coord::new(coord_that_move.x, coord_that_move.y + 1));
                     }
                     Some(']') => {
                         more_coords_that_move.insert((pointer, ']'));
                         more_coords_that_move.insert((Coord::new(pointer.x, pointer.y - 1), '['));
-                        clear_coords.insert(Coord::new(coord_that_move.x, coord_that_move.y-1));
-
+                        clear_coords.insert(Coord::new(coord_that_move.x, coord_that_move.y - 1));
                     }
 
                     Some('#') => {
                         move_possible = false;
                     }
 
-                    Some('.') => {
-
-                    }
+                    Some('.') => {}
                     _ => {
                         panic!("Unknown cell {:?}", val);
                     }
@@ -120,7 +129,6 @@ fn part_two(input: &str) -> i32 {
     get_matrix_score(matrix)
 }
 
-
 fn main() {
     const INPUT: &str = include_str!("input.txt");
     println!("{} part one: {}", env!("CARGO_PKG_NAME"), part_one(INPUT));
@@ -133,7 +141,6 @@ mod tests {
     const EXAMPLE: &str = include_str!("example.txt");
     const EXAMPLE_SMALL: &str = include_str!("example_small.txt");
     const EXAMPLE_SMALL_P2: &str = include_str!("example_small_p2.txt");
-
 
     #[test]
     fn example_part_one() {

@@ -1,4 +1,4 @@
-use std::collections::{ HashSet};
+use std::collections::HashSet;
 use std::error::Error;
 use std::ops::Add;
 
@@ -14,7 +14,12 @@ impl Add for &Coord {
 }
 
 fn has_obstacle(coord: &Coord, matrix: &Vec<Vec<char>>) -> bool {
-    matrix.get(coord.0 as usize).map(|r|r.get(coord.1 as usize)).unwrap_or(Some(&'.')).unwrap_or(&'.') == &'#'
+    matrix
+        .get(coord.0 as usize)
+        .map(|r| r.get(coord.1 as usize))
+        .unwrap_or(Some(&'.'))
+        .unwrap_or(&'.')
+        == &'#'
 }
 
 fn get_path_no_cycle(input: &str) -> Vec<(Coord, Coord)> {
@@ -50,11 +55,13 @@ fn get_path_no_cycle(input: &str) -> Vec<(Coord, Coord)> {
             guard_coord = next_guard_cord;
         } else {
             diff = match diff {
-                Coord(-1, 0) => { Coord(0, 1) }
-                Coord(0, 1) => { Coord(1, 0) }
-                Coord(1, 0) => { Coord(0, -1) }
-                Coord(0, -1) => { Coord(-1, 0) }
-                Coord(_, _) => { panic!("Invalid direction")}
+                Coord(-1, 0) => Coord(0, 1),
+                Coord(0, 1) => Coord(1, 0),
+                Coord(1, 0) => Coord(0, -1),
+                Coord(0, -1) => Coord(-1, 0),
+                Coord(_, _) => {
+                    panic!("Invalid direction")
+                }
             }
         }
     }
@@ -62,7 +69,10 @@ fn get_path_no_cycle(input: &str) -> Vec<(Coord, Coord)> {
 }
 
 fn part_one(input: &str) -> i32 {
-    let mut path = get_path_no_cycle(input).into_iter().map(|(coord, _)| coord).collect::<Vec<_>>();
+    let mut path = get_path_no_cycle(input)
+        .into_iter()
+        .map(|(coord, _)| coord)
+        .collect::<Vec<_>>();
     path.sort();
     path.dedup();
     path.len() as i32
@@ -72,11 +82,13 @@ fn move_guard(guard_coord: &mut Coord, guard_dir: &mut Coord, matrix: &Vec<Vec<c
     let next_guard_cord = &*guard_coord + &*guard_dir;
 
     let rotated_guard_dir = match guard_dir {
-        Coord(-1, 0) => { Coord(0, 1) }
-        Coord(0, 1) => { Coord(1, 0) }
-        Coord(1, 0) => { Coord(0, -1) }
-        Coord(0, -1) => { Coord(-1, 0) }
-        Coord(_, _) => { panic!("Invalid direction")}
+        Coord(-1, 0) => Coord(0, 1),
+        Coord(0, 1) => Coord(1, 0),
+        Coord(1, 0) => Coord(0, -1),
+        Coord(0, -1) => Coord(-1, 0),
+        Coord(_, _) => {
+            panic!("Invalid direction")
+        }
     };
 
     if !has_obstacle(&next_guard_cord, &matrix) {
@@ -88,7 +100,12 @@ fn move_guard(guard_coord: &mut Coord, guard_dir: &mut Coord, matrix: &Vec<Vec<c
     }
 }
 
-fn check_for_loop (max_i: i32, max_j: i32, matrix: &Vec<Vec<char>>, guard_init_coord: &(Coord, Coord)) -> bool {
+fn check_for_loop(
+    max_i: i32,
+    max_j: i32,
+    matrix: &Vec<Vec<char>>,
+    guard_init_coord: &(Coord, Coord),
+) -> bool {
     let mut fast_guard_coord = guard_init_coord.0;
     let mut guard_coord = guard_init_coord.0;
     let mut diff = guard_init_coord.1;
@@ -102,7 +119,7 @@ fn check_for_loop (max_i: i32, max_j: i32, matrix: &Vec<Vec<char>>, guard_init_c
             return false;
         }
         if fast_guard_coord.0 > max_i || fast_guard_coord.1 > max_j {
-            return false
+            return false;
         }
 
         if fast_guard_coord == guard_coord && fast_diff == diff {
@@ -117,9 +134,11 @@ fn part_two(input: &str) -> i32 {
     let max_j = matrix[0].len() - 1;
     let coords_to_check = get_path_no_cycle(input);
 
-    let mut filtered_coords_to_check : Vec<(Coord, Coord)> = Vec::new();
+    let mut filtered_coords_to_check: Vec<(Coord, Coord)> = Vec::new();
     for coord_to_check in coords_to_check {
-        let a = filtered_coords_to_check.iter().find(|(a,_b )| { *a==coord_to_check.0});
+        let a = filtered_coords_to_check
+            .iter()
+            .find(|(a, _b)| *a == coord_to_check.0);
         if a.is_none() {
             filtered_coords_to_check.push(coord_to_check);
         }
