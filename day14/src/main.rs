@@ -67,7 +67,7 @@ fn get_neighbour_score(robot_coords: &Vec<Robot>) -> usize {
 
 fn visualize_robot_coords(robot_coords: &Vec<Coord>, max_x: usize, max_y: usize) {
     let mut matrix = Vec::new();
-    for i in 0..max_y + 1 {
+    for _i in 0..max_y + 1 {
         matrix.push(Vec::new());
         for j in 0..max_x + 1 {
             let c = Coord::new(j as i32, i as i32);
