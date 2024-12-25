@@ -49,15 +49,6 @@ fn part_two(input: &str) -> String {
     res.join(",")
 }
 
-
-// algorithm BronKerbosch1(R, P, X) is
-//     if P and X are both empty then
-//         report R as a maximal clique
-//     for each vertex v in P do
-//         BronKerbosch1(R ⋃ {v}, P ⋂ N(v), X ⋂ N(v))
-//         P := P \ {v}
-//         X := X ⋃ {v}
-
 fn bron_kerbosch(graph: &petgraph::graph::UnGraph<&str, i32>, mut r : HashSet<NodeIndex>, mut p : HashSet<NodeIndex>, mut x : HashSet<NodeIndex>, res : &mut Vec::<HashSet<NodeIndex>>)  {
     if p.is_empty() && x.is_empty() {
         res.push(r);
