@@ -1,11 +1,13 @@
+use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::{BitXor};
 
 trait Gate : Debug {
-    fn getValue(&self, gates: &HashMap<String, Box<dyn Gate>>) -> bool;
+    fn getValue(&self, gates: &HashMap<String, Box<dyn Gate>>, xs: &Vec<bool>, ys: &Vec<bool>) -> bool;
     fn print(&self, gates: &HashMap<String, Box<dyn Gate>>) -> String;
     fn get_inputs(&self, gates: &HashMap<String, Box<dyn Gate>>) -> Vec<String>;
+    fn as_any (&mut self) -> &mut dyn Any;
 }
 
 trait ComplexGate {
@@ -20,12 +22,16 @@ struct ConstGate {
 }
 
 impl Gate for ConstGate {
-    fn getValue(&self, _gates: &HashMap<String, Box<dyn Gate>>) -> bool { self.value }
+    fn getValue(&self, _gates: &HashMap<String, Box<dyn Gate>>, xs: &Vec<bool>, ys: &Vec<bool>) -> bool { self.value }
     fn print(&self, _gates: &HashMap<String, Box<dyn Gate>>)  -> String {
         format!("{}", self.name)
     }
     fn get_inputs(&self, _gates: &HashMap<String, Box<dyn Gate>>) -> Vec<String> {
         vec![self.name.clone()]
+    }
+
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }
 
@@ -46,8 +52,8 @@ impl ComplexGate for XorGate {
 }
 
 impl Gate for XorGate {
-    fn getValue(&self, gates: &HashMap<String, Box<dyn Gate>>) -> bool {
-        gates.get(&self.lhs).unwrap().getValue(gates).bitxor(gates.get(&self.rhs).unwrap().getValue(gates))
+    fn getValue(&self, gates: &HashMap<String, Box<dyn Gate>>, xs: &Vec<bool>, ys: &Vec<bool>) -> bool {
+        gates.get(&self.lhs).unwrap().getValue(gates, xs, ys).bitxor(gates.get(&self.rhs).unwrap().getValue(gates, xs, ys))
     }
     fn print(&self, gates: &HashMap<String, Box<dyn Gate>>)  -> String {
         format!("({} XOR {})", self.lhs_gate(gates).print(gates), self.rhs_gate(gates).print(gates))
@@ -56,6 +62,10 @@ impl Gate for XorGate {
         let mut res = self.lhs_gate(gates).get_inputs(gates);
         res.append(&mut self.rhs_gate(gates).get_inputs(gates));
         res
+    }
+
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }
 
@@ -67,8 +77,8 @@ struct OrGate {
 }
 
 impl Gate for OrGate {
-    fn getValue(&self, gates: &HashMap<String, Box<dyn Gate>>) -> bool {
-        gates.get(&self.lhs).unwrap().getValue(gates) || gates.get(&self.rhs).unwrap().getValue(gates)
+    fn getValue(&self, gates: &HashMap<String, Box<dyn Gate>>, xs: &Vec<bool>, ys: &Vec<bool>) -> bool {
+        gates.get(&self.lhs).unwrap().getValue(gates, xs, ys) || gates.get(&self.rhs).unwrap().getValue(gates, xs, ys)
     }
 
     fn print(&self, gates: &HashMap<String, Box<dyn Gate>>)  -> String {
@@ -78,6 +88,10 @@ impl Gate for OrGate {
         let mut res = self.lhs_gate(gates).get_inputs(gates);
         res.append(&mut self.rhs_gate(gates).get_inputs(gates));
         res
+    }
+
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }
 
@@ -99,8 +113,8 @@ struct AndGate {
 }
 
 impl Gate for AndGate {
-    fn getValue(&self, gates: &HashMap<String, Box<dyn Gate>>) -> bool {
-        gates.get(&self.lhs).unwrap().getValue(gates) && gates.get(&self.rhs).unwrap().getValue(gates)
+    fn getValue(&self, gates: &HashMap<String, Box<dyn Gate>>, xs: &Vec<bool>, ys: &Vec<bool>) -> bool {
+        gates.get(&self.lhs).unwrap().getValue(gates, xs, ys) && gates.get(&self.rhs).unwrap().getValue(gates, xs, ys)
     }
 
     fn print(&self, gates: &HashMap<String, Box<dyn Gate>>) -> String {
@@ -111,6 +125,10 @@ impl Gate for AndGate {
         let mut res = self.lhs_gate(gates).get_inputs(gates);
         res.append(&mut self.rhs_gate(gates).get_inputs(gates));
         res
+    }
+
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
     }
 }
 
@@ -123,9 +141,11 @@ impl ComplexGate for AndGate {
     }
 }
 
-fn parse(input: &str) -> HashMap<String, Box<dyn Gate>> {
+fn parse(input: &str) -> (Vec<bool>, Vec<bool>, HashMap<String, Box<dyn Gate>>) {
     let mut gates: HashMap<String, Box<dyn Gate>> = HashMap::new();
     let (const_gates_str, complex_gates_str) = input.split_once("\n\n").unwrap();
+    let mut xs = Vec::new();
+    let mut ys = Vec::new();
     for const_gate_str in const_gates_str.lines() {
         let (name_str, value_str) = const_gate_str.split_once(": ").unwrap();
         let value = match value_str {
@@ -133,6 +153,12 @@ fn parse(input: &str) -> HashMap<String, Box<dyn Gate>> {
             "1" => true,
             &_ => { panic!("Unknown value {}", value_str) }
         };
+        let (xy, n) = name_str.split_at(1);
+        match xy {
+            "x" => xs.push(value),
+            "y" => ys.push(value),
+            _ => { panic!("Unknown {}", xy) }
+        }
         gates.insert(name_str.to_string(), Box::new(ConstGate { name: name_str.to_string(), value }));
     }
     for complex_gate_str in complex_gates_str.lines() {
@@ -148,19 +174,29 @@ fn parse(input: &str) -> HashMap<String, Box<dyn Gate>> {
             gates.insert(name_str.to_string(), Box::new(XorGate { name: name_str.to_string(), lhs: xor_lhs.to_string(), rhs: xor_rhs.to_string() }));
         }
     }
-    gates
+    (xs, ys, gates)
 }
 
 fn part_one(input: &str) -> u64 {
-    let gates = parse(input);
+    let (xs, ys, gates) = parse(input);
     let mut z_gates = gates.iter().filter(|g| g.0.starts_with("z")).collect::<Vec<_>>();
     z_gates.sort_by(|(a, _), (b, _)| { b.cmp(a) });
-    let res_bin = z_gates.iter().map(|(_gate_name, gate)| (gate.getValue(&gates) as u64).to_string()).collect::<Vec<_>>();
+    let res_bin = z_gates.iter().map(|(_gate_name, gate)| (gate.getValue(&gates, &xs, &ys) as u64).to_string()).collect::<Vec<_>>();
     u64::from_str_radix(&res_bin.join(""), 2).unwrap()
 }
 
+fn check_part_two(x: u64, y:u64, gates: &mut HashMap<String, Box<dyn Gate>>) {
+    let mut z_gates = gates.iter().filter(|g| g.0.starts_with("z")).collect::<Vec<_>>();
+    z_gates.sort_by(|(a, _), (b, _)| { b.cmp(a) });
+
+    let mut x_gates = gates.iter_mut().filter(|g| g.0.starts_with("x")).collect::<Vec<_>>();
+    x_gates.sort_by(|(a, _), (b, _)| { b.cmp(a) });
+    let mut y_gates = gates.iter().filter(|g| g.0.starts_with("y")).collect::<Vec<_>>();
+    y_gates.sort_by(|(a, _), (b, _)| { b.cmp(a) });
+}
+
 fn part_two(input: &str) -> u64 {
-    let gates = parse(input);
+    let (xs, ys, gates) = parse(input);
     let mut z_gates = gates.iter().filter(|g| g.0.starts_with("z")).collect::<Vec<_>>();
     z_gates.sort_by(|(a, _), (b, _)| { b.cmp(a) });
 
@@ -169,11 +205,13 @@ fn part_two(input: &str) -> u64 {
     let mut y_gates = gates.iter().filter(|g| g.0.starts_with("y")).collect::<Vec<_>>();
     y_gates.sort_by(|(a, _), (b, _)| { b.cmp(a) });
 
-    let x = u64::from_str_radix(&x_gates.iter().map(|(_gate_name, gate)| (gate.getValue(&gates) as u64).to_string()).collect::<Vec<_>>().join(""), 2).unwrap();
-    let y = u64::from_str_radix(&y_gates.iter().map(|(_gate_name, gate)| (gate.getValue(&gates) as u64).to_string()).collect::<Vec<_>>().join(""), 2).unwrap();
-    let z = u64::from_str_radix(&z_gates.iter().map(|(_gate_name, gate)| (gate.getValue(&gates) as u64).to_string()).collect::<Vec<_>>().join(""), 2).unwrap();
+    let x = u64::from_str_radix(&x_gates.iter().map(|(_gate_name, gate)| (gate.getValue(&gates, &xs, &ys) as u64).to_string()).collect::<Vec<_>>().join(""), 2).unwrap();
+    let y = u64::from_str_radix(&y_gates.iter().map(|(_gate_name, gate)| (gate.getValue(&gates, &xs, &ys) as u64).to_string()).collect::<Vec<_>>().join(""), 2).unwrap();
+    let z = u64::from_str_radix(&z_gates.iter().map(|(_gate_name, gate)| (gate.getValue(&gates, &xs, &ys) as u64).to_string()).collect::<Vec<_>>().join(""), 2).unwrap();
 
-    println!("   {x:b}\n+  {y:b}\n= {z:b}");
+    println!("   {x:b}\n+  {y:b}\n= {z:b}\n  {:b}", x+y);
+
+    println!("{}", z_gates[z_gates.len()-9].1.print(&gates));
     0
 }
 
