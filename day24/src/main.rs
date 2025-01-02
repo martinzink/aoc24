@@ -211,6 +211,7 @@ fn part_two(input: &str) -> u64 {
 
     println!("   {x:b}\n+  {y:b}\n= {z:b}\n  {:b}", x+y);
 
+    // Satisfied with the semi-manual results wont automate it
     println!("{}", z_gates[z_gates.len()-9].1.print(&gates));
     0
 }
